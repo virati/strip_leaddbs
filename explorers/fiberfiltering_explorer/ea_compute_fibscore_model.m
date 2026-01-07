@@ -3,17 +3,21 @@ function [Ihat,Ihat_train_global,val_struct,actualimprovs] = ea_compute_fibscore
     if obj.useExternalModel == true
         S = load(obj.ExternalModelFile);
         if ~strcmp(S.connectome,ea_conn2connid(obj.connectome))
-            waitfor(msgbox('The chosen fibfilt model was computed for another connectome! See terminal'));
+            if ~exist('obj', 'var') || ~obj.headless
+                waitfor(msgbox('The chosen fibfilt model was computed for another connectome! See terminal'));
+            end
             disp('Model for connectome: ')
             disp(S.connectome)
-            return
+            error('The chosen fibfilt model was computed for another connectome!');
         end
 
         if obj.connectivity_type ~= S.conn_type
-            waitfor(msgbox('The connectivity methods of imported and current model are different! See terminal'));
+            if ~exist('obj', 'var') || ~obj.headless
+                waitfor(msgbox('The connectivity methods of imported and current model are different! See terminal'));
+            end
             disp('Connectivity type of imported model: ')
             disp(obj.connectivity_type)
-            return     
+            error('The connectivity methods of imported and current model are different!');
         end
 
         vals_connected = cell(size(S.vals_all,1),size(S.vals_all,2));
@@ -35,7 +39,11 @@ function [Ihat,Ihat_train_global,val_struct,actualimprovs] = ea_compute_fibscore
                             end
                     end
                 catch
-                    ea_warndlg("Connectivity indices were not stored. Please recalculate.");
+                    if ~obj.headless
+                        ea_warndlg("Connectivity indices were not stored. Please recalculate.");
+                    else
+                        warning("Connectivity indices were not stored. Please recalculate.");
+                    end
                     return
                 end
             end
@@ -55,7 +63,7 @@ function [Ihat,Ihat_train_global,val_struct,actualimprovs] = ea_compute_fibscore
     end
 
     if ~exist('Iperm', 'var') || isempty(Iperm)
-        if obj.cvlivevisualize
+        if obj.cvlivevisualize && ~obj.headless
             if obj.useExternalModel == true
               [vals,fibcell,usedidx] = ea_discfibers_loadModel_calcstats(obj, vals_connected);
             else
@@ -77,7 +85,7 @@ function [Ihat,Ihat_train_global,val_struct,actualimprovs] = ea_compute_fibscore
             end
         end
     else
-        if obj.cvlivevisualize
+        if obj.cvlivevisualize && ~obj.headless
             [vals,fibcell,usedidx] = ea_discfibers_calcstats(obj, patientsel(training), Iperm);
             obj.draw(vals,fibcell,usedidx)
             %obj.draw(vals,fibcell);

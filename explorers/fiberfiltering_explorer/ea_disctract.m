@@ -104,7 +104,10 @@ classdef ea_disctract < handle
         runwhite = 0; % flag to calculate connected tracts instead of stat tracts
         e_field_metric = 'Magnitude'; % 'Magnitude' or 'Projection'
         calculationMethod = 'E-field/Voxel Based Method'; %old method (traditional, uses dMRI connectome/dMRI MultiTract connectome and calculates overlap)
-    end 
+        headless = false % Enable headless mode (no GUI/visualization)
+        silent = false % Suppress console output
+        has_resultfig = true % Internal flag for resultfig availability
+    end
 
     properties (Access = private)
         switchedFromSpace=3 % if switching space, this will protocol where from
@@ -146,7 +149,15 @@ classdef ea_disctract < handle
                     id = id + 1;
                 end
                 obj.ID = testID;
-                obj.resultfig = resultfig;
+
+                % Handle resultfig for headless mode
+                if obj.headless || isempty(resultfig)
+                    obj.resultfig = figure('Visible', 'off');
+                    obj.has_resultfig = false;
+                else
+                    obj.resultfig = resultfig;
+                    obj.has_resultfig = true;
+                end
 
                 if isfield(obj.M,'pseudoM')
                     obj.allpatients = obj.M.ROI.list;
@@ -238,9 +249,16 @@ classdef ea_disctract < handle
                 if isfield(obj.results,ea_conn2connid(obj.connectome))
                     if (isfield(obj.results.(ea_conn2connid(obj.connectome)),'PAM_Ttest') && obj.connectivity_type==2) || ...
                             (isfield(obj.results.(ea_conn2connid(obj.connectome)),'efield_mean') && obj.connectivity_type==1)
-                        answ=questdlg('This has already been calculated. Are you sure you want to re-calculate everything?','Recalculate Results','No','Yes','No');
-                        if ~strcmp(answ,'Yes')
-                            return
+                        if ~obj.headless
+                            answ=questdlg('This has already been calculated. Are you sure you want to re-calculate everything?','Recalculate Results','No','Yes','No');
+                            if ~strcmp(answ,'Yes')
+                                return
+                            end
+                        else
+                            % In headless mode, always recalculate if explicitly called
+                            if ~obj.silent
+                                warning('Recalculating existing results in headless mode');
+                            end
                         end
                     end
                 end
@@ -323,24 +341,29 @@ classdef ea_disctract < handle
                 case 2
                     [~,FilesExist] = ea_discfibers_getpams(obj);
                     if ~all(FilesExist)
-                        answ=questdlg('It seems like PAM has not been (completely) run. We can initiate the process now, but this will take some time. Proceed?','PAM not run','yes','no','yes');
-                        switch answ
-                            case 'yes'
-                                options=ea_defaultoptions;
-                                options.prefs.machine.vatsettings.butenko_calcPAM=1;
-                                options.prefs.machine.vatsettings.butenko_calcVAT=0;
-                                options.prefs.machine.vatsettings.butenko_connectome=obj.connectome;
-                                options.groupdir=fileparts(obj.leadgroup);
-                                obj.M.vatmodel='OSS-DBS (Butenko 2020)';
-                                if isfield(obj.M.ui, 'stimSetMode') && obj.M.ui.stimSetMode
-                                    options.stimSetMode = 1;
-                                else
-                                    options.stimSetMode = 0;
-                                end
-                                filesToCalc = find(sum(FilesExist(1:length(obj.M.patient.list),:),2)<2)';
-                                calc_biophysical(obj,options,filesToCalc);
-                            case 'no'
-                                return
+                        if ~obj.headless
+                            answ=questdlg('It seems like PAM has not been (completely) run. We can initiate the process now, but this will take some time. Proceed?','PAM not run','yes','no','yes');
+                            switch answ
+                                case 'yes'
+                                    options=ea_defaultoptions;
+                                    options.prefs.machine.vatsettings.butenko_calcPAM=1;
+                                    options.prefs.machine.vatsettings.butenko_calcVAT=0;
+                                    options.prefs.machine.vatsettings.butenko_connectome=obj.connectome;
+                                    options.groupdir=fileparts(obj.leadgroup);
+                                    obj.M.vatmodel='OSS-DBS (Butenko 2020)';
+                                    if isfield(obj.M.ui, 'stimSetMode') && obj.M.ui.stimSetMode
+                                        options.stimSetMode = 1;
+                                    else
+                                        options.stimSetMode = 0;
+                                    end
+                                    filesToCalc = find(sum(FilesExist(1:length(obj.M.patient.list),:),2)<2)';
+                                    calc_biophysical(obj,options,filesToCalc);
+                                case 'no'
+                                    return
+                            end
+                        else
+                            % In headless mode, throw error instead of prompting
+                            error('PAM files not found. Please run PAM calculation before fiber filtering.');
                         end
 
                     end
@@ -359,32 +382,37 @@ classdef ea_disctract < handle
                         end
                     end
                     while ~all(FilesExist(:))
-                        answ=questdlg('It seems like not all stimulation volumes have been calculated. We can initiate the process now, but this will take some time. Proceed?','Stimvolumes not calculated','yes','no','yes');
-                        switch answ
-                            case 'yes'
-                                if strcmp(obj.calculationMethod,'Fiber Based Method')
-                                    obj.M.vatmodel='OSS-DBS (Butenko 2020)';
-                                    switch obj.native
-                                        case 1
-                                            space = 'native';
-                                        case 0
-                                            space = 'MNI';
+                        if ~obj.headless
+                            answ=questdlg('It seems like not all stimulation volumes have been calculated. We can initiate the process now, but this will take some time. Proceed?','Stimvolumes not calculated','yes','no','yes');
+                            switch answ
+                                case 'yes'
+                                    if strcmp(obj.calculationMethod,'Fiber Based Method')
+                                        obj.M.vatmodel='OSS-DBS (Butenko 2020)';
+                                        switch obj.native
+                                            case 1
+                                                space = 'native';
+                                            case 0
+                                                space = 'MNI';
+                                        end
                                     end
-                                end
-                                options=ea_defaultoptions;
-                                options.prefs.machine.vatsettings.butenko_calcPAM=0;
-                                options.prefs.machine.vatsettings.butenko_calcVAT=1;
-                                options.groupdir=fileparts(obj.leadgroup);
-                                if isfield(obj.M.ui, 'stimSetMode') && obj.M.ui.stimSetMode
-                                    options.stimSetMode = 1;
-                                else
-                                    options.stimSetMode = 0;
-                                end
-                                filesToCalc = find(sum(FilesExist(1:length(obj.M.patient.list),:),2)<2)';
-                                calc_biophysical(obj,options,filesToCalc);
-                                [~,FilesExist] = ea_discfibers_getvats(obj);
-                            case 'no'
-                                return
+                                    options=ea_defaultoptions;
+                                    options.prefs.machine.vatsettings.butenko_calcPAM=0;
+                                    options.prefs.machine.vatsettings.butenko_calcVAT=1;
+                                    options.groupdir=fileparts(obj.leadgroup);
+                                    if isfield(obj.M.ui, 'stimSetMode') && obj.M.ui.stimSetMode
+                                        options.stimSetMode = 1;
+                                    else
+                                        options.stimSetMode = 0;
+                                    end
+                                    filesToCalc = find(sum(FilesExist(1:length(obj.M.patient.list),:),2)<2)';
+                                    calc_biophysical(obj,options,filesToCalc);
+                                    [~,FilesExist] = ea_discfibers_getvats(obj);
+                                case 'no'
+                                    return
+                            end
+                        else
+                            % In headless mode, throw error instead of prompting
+                            error('Stimulation volumes not found. Please calculate VATs/E-fields before fiber filtering.');
                         end
                     end
                     %recheck
@@ -636,9 +664,13 @@ classdef ea_disctract < handle
 
         function refreshlg(obj)
             if ~exist(obj.leadgroup,'file')
-                msgbox('Groupan alysis file has vanished. Please select file.');
-                [fn,pth]=uigetfile();
-                obj.leadgroup=fullfile(pth,fn);
+                if ~obj.headless
+                    msgbox('Groupan alysis file has vanished. Please select file.');
+                    [fn,pth]=uigetfile();
+                    obj.leadgroup=fullfile(pth,fn);
+                else
+                    error('Group analysis file has vanished. Please check file path: %s', obj.leadgroup);
+                end
             end
             D = load(obj.leadgroup);
             obj.M = D.M;
@@ -651,7 +683,7 @@ classdef ea_disctract < handle
 
         function [I, Ihat] = loocv(obj,silent)
             if ~exist('silent','var')
-                silent=0;
+                silent = obj.headless || obj.silent;
             end
             rng(obj.rngseed);
             cvp = cvpartition(length(obj.patientselection), 'LeaveOut');
@@ -668,7 +700,7 @@ classdef ea_disctract < handle
 
         function [I, Ihat, val_struct] = kfoldcv(obj,silent)
             if ~exist('silent','var')
-                silent=0;
+                silent = obj.headless || obj.silent;
             end
             I_iter = {};
             Ihat_iter = {};
@@ -757,7 +789,7 @@ classdef ea_disctract < handle
 
         function [I, Ihat, val_struct] = lno(obj, Iperm, silent)
             if ~exist('silent','var')
-                silent=0;
+                silent = obj.headless || obj.silent;
             end
             rng(obj.rngseed);
             cvp = cvpartition(length(obj.patientselection), 'resubstitution');
@@ -770,7 +802,7 @@ classdef ea_disctract < handle
 
         function [Improvement, Ihat, actualimprovs, val_struct] = crossval(obj, cvp, Iperm, shuffle, silent)
             if ~exist('silent','var')
-                silent=0;
+                silent = obj.headless || obj.silent;
             end
             if ~exist('shuffle','var') || isempty(shuffle)
                 shuffle=0;
@@ -1169,7 +1201,11 @@ classdef ea_disctract < handle
                     end
                     subvars=ea_nanzscore(cell2mat(selected_subscores));
                     if size(subvars,2) <= 2
-                        ea_warndlg("You may not have enough subscores & this might result in errors. Please consider selecting more subscores.")
+                        if ~obj.headless
+                            ea_warndlg("You may not have enough subscores & this might result in errors. Please consider selecting more subscores.")
+                        else
+                            warning("You may not have enough subscores & this might result in errors. Please consider selecting more subscores.")
+                        end
                     end
 
                     % [coeff,score,latent,tsquared,explained,mu]=pca(subvars,'Rows','complete');
@@ -1314,8 +1350,10 @@ classdef ea_disctract < handle
             end
             rf=obj.resultfig; % need to stash fig handle for saving.
             rd=obj.drawobject; % need to stash handle of drawing before saving.
-            try % could be figure is already closed.
-                setappdata(rf,['dt_',tractset.ID],rd); % store handle of tract to figure.
+            if obj.has_resultfig
+                try % could be figure is already closed.
+                    setappdata(rf,['dt_',tractset.ID],rd); % store handle of tract to figure.
+                end
             end
 
             %we do not need to store plainconn separately since it is a
@@ -1347,6 +1385,27 @@ classdef ea_disctract < handle
         function draw(obj,vals,fibcell,usedidx) %for cv live visualize
             %function draw(obj,vals,fibcell)
 
+            % In headless mode, skip visualization but calculate stats
+            if obj.headless
+                allvals{1}=[];
+                if size(vals,2)==2
+                    allvals{2}=[];
+                end
+                for v=1:size(vals,1)
+                    allvals{1}=[allvals{1};vals{v,1}];
+                    if size(vals,2)==2
+                        allvals{2}=[allvals{2};vals{v,2}];
+                    end
+                end
+                obj.stats.pos.shown(1)=sum(allvals{1}>0);
+                obj.stats.neg.shown(1)=sum(allvals{1}<0);
+                if size(vals,2)>1
+                    obj.stats.pos.shown(2)=sum(allvals{2}>0);
+                    obj.stats.neg.shown(2)=sum(allvals{2}<0);
+                end
+                return; % Skip all visualization code
+            end
+
             % re-define plainconn (since we do not store it)
             try
                 if obj.connectivity_type == 2
@@ -1355,7 +1414,9 @@ classdef ea_disctract < handle
                     obj.results.(ea_conn2connid(obj.connectome)).('plainconn').fibsval = obj.results.(ea_conn2connid(obj.connectome)).('VAT_Ttest').fibsval;
                 end
             catch
-                ea_warndlg("Connectivity indices were not stored. Please recalculate or stay with the same model (VAT or PAM)");
+                if ~obj.headless
+                    ea_warndlg("Connectivity indices were not stored. Please recalculate or stay with the same model (VAT or PAM)");
+                end
                 disp("=================== WARNING ========================")
                 disp("Connectivity indices connFiberInd were not stored")
                 disp("Recalculate or stay with the same model (VAT or PAM)")
@@ -1398,7 +1459,9 @@ classdef ea_disctract < handle
                         end
                     end
                 catch
-                    ea_warndlg("Connectivity indices were not stored. Please recalculate or stay with the same model (VAT or PAM)");
+                    if ~obj.headless
+                        ea_warndlg("Connectivity indices were not stored. Please recalculate or stay with the same model (VAT or PAM)");
+                    end
                     disp("=================== WARNING ========================")
                     disp("Connectivity indices connFiberInd were not stored")
                     disp("Recalculate or stay with the same model (VAT or PAM)")
@@ -1421,17 +1484,21 @@ classdef ea_disctract < handle
             if obj.useExternalModel == true && ~strcmp(obj.ExternalModelFile, 'None')
                 S = load(obj.ExternalModelFile);
                 if ~strcmp(S.connectome,ea_conn2connid(obj.connectome))
-                    waitfor(msgbox('The chosen fibfilt model was computed for another connectome! See terminal'));
+                    if ~obj.headless
+                        waitfor(msgbox('The chosen fibfilt model was computed for another connectome! See terminal'));
+                    end
                     disp('Model for connectome: ')
                     disp(S.connectome)
-                    return
+                    error('The chosen fibfilt model was computed for another connectome!');
                 end
 
                 if obj.connectivity_type ~= S.conn_type
-                    waitfor(msgbox('The connectivity methods of imported and current model are different! See terminal'));
+                    if ~obj.headless
+                        waitfor(msgbox('The connectivity methods of imported and current model are different! See terminal'));
+                    end
                     disp('Connectivity type of imported model: ')
                     disp(obj.connectivity_type)
-                    return
+                    error('The connectivity methods of imported and current model are different!');
                 end
 
                 vals_connected = cell(size(S.vals_all,1),size(S.vals_all,2)); % always iterate both sides
@@ -1607,7 +1674,7 @@ classdef ea_disctract < handle
                     linecols = obj.subscore.pcacolors;
             end
 
-            if isempty(obj.drawobject) % check if prior object has been stored
+            if isempty(obj.drawobject) && obj.has_resultfig % check if prior object has been stored
                 obj.drawobject=getappdata(obj.resultfig,['dt_',obj.ID]); % store handle of tract to figure.
             end
 
@@ -1882,7 +1949,9 @@ classdef ea_disctract < handle
                         % alphaind = normalize(-1./(1+exp(-allvals)), 'range');
                     end
                 end
-                setappdata(obj.resultfig, ['fibcmap',obj.ID], fibcmap);
+                if obj.has_resultfig
+                    setappdata(obj.resultfig, ['fibcmap',obj.ID], fibcmap);
+                end
 
                 if size(vals,2)>1 % standard case
                     cmapind = mat2cell(cmapind, [numel(vals{group,1}), numel(vals{group,2})])';
