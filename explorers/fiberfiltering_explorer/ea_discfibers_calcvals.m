@@ -1,5 +1,13 @@
 function [fibsvalBin, fibsvalSum, fibsvalMean, fibsvalPeak, fibsval5Peak, fibcell, connFiberInd, totalFibers] = ea_discfibers_calcvals(vatlist, cfile, thresh)
 % Calculate fiber connection values based on the VATs and the connectome
+%
+% DEPRECATED: This function is deprecated and kept for backward compatibility only.
+% Use ea_discfibers_calcvals_unified('efield', ...) instead.
+% The unified function provides better memory efficiency by allowing the
+% connectome to be loaded once by the caller and reused across methods.
+
+warning('ea_discfibers_calcvals:deprecated', ...
+    'ea_discfibers_calcvals is deprecated. Use ea_discfibers_calcvals_unified instead.');
 
 disp('Load Connectome...');
 load(cfile, 'fibers', 'idx');

@@ -1,6 +1,14 @@
 function [fibsvalBin, fibsvalProb, fibsvalMean, fibsvalPeak, fibsval5Peak, fibcell, connFiberInd, totalFibers] = ea_discfibers_calcvals_pam_prob(pamlist, obj, cfile)
 % Extract fiber connection values from OSS-DBS results (for a particular connectome)
 % use "probabilistic" PAM results
+%
+% DEPRECATED: This function is deprecated and kept for backward compatibility only.
+% Use ea_discfibers_calcvals_unified('pam_prob', ...) instead.
+% The unified function provides better memory efficiency by allowing the
+% connectome to be loaded once by the caller and reused across methods.
+
+warning('ea_discfibers_calcvals_pam_prob:deprecated', ...
+    'ea_discfibers_calcvals_pam_prob is deprecated. Use ea_discfibers_calcvals_unified instead.');
 
 disp('Load Connectome...');
 load(cfile);

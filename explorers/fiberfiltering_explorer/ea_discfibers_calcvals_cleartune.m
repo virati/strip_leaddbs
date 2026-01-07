@@ -1,5 +1,13 @@
 function [fibsvalBin, fibsvalSum, fibsvalMean, fibsvalPeak, fibsval5Peak, fibcell] = ea_discfibers_calcvals_cleartune(vatlist, fibcell, thresh)
 % Calculate fiber connection values based on the VATs and the connectome
+%
+% DEPRECATED: This function is deprecated and kept for backward compatibility only.
+% Use ea_discfibers_calcvals_unified('cleartune', ...) instead.
+% The unified function provides better memory efficiency and consistent interface
+% across all connectivity calculation methods.
+
+warning('ea_discfibers_calcvals_cleartune:deprecated', ...
+    'ea_discfibers_calcvals_cleartune is deprecated. Use ea_discfibers_calcvals_unified instead.');
 
 prefs = ea_prefs;
 if ~exist('thresh','var')
@@ -78,17 +86,3 @@ for side = 1:numSide
     fibsvalPeak{side} = sparse(fibsvalPeak{side});
     fibsval5Peak{side} = sparse(fibsval5Peak{side});
 end
-
-
-function fibers=ea_fibcell2fibmat(fibers)
-[idx,~]=cellfun(@size,fibers);
-fibers=cell2mat(fibers);
-idxv=zeros(size(fibers,1),1);
-lid=1; cnt=1;
-for id=idx'
-
-    idxv(lid:lid+id-1)=cnt;
-    lid=lid+id;
-    cnt=cnt+1;
-end
-fibers=[fibers,idxv];

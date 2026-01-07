@@ -1,5 +1,13 @@
 function [fibsvalBin, fibsvalSum, fibsvalMean, fibsvalPeak, fibsval5Peak, fibcell, connFiberInd, totalFibers] = ea_discfibers_calcvals_pam(pamlist, obj, cfile)
 % Extract fiber connection values from OSS-DBS results (for a particular connectome)
+%
+% DEPRECATED: This function is deprecated and kept for backward compatibility only.
+% Use ea_discfibers_calcvals_unified('pam_binary', ...) instead.
+% The unified function provides better memory efficiency by allowing the
+% connectome to be loaded once by the caller and reused across methods.
+
+warning('ea_discfibers_calcvals_pam:deprecated', ...
+    'ea_discfibers_calcvals_pam is deprecated. Use ea_discfibers_calcvals_unified instead.');
 
 disp('Load Connectome...');
 load(cfile, 'fibers', 'idx');

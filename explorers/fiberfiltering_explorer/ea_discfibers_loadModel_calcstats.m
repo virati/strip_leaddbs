@@ -114,36 +114,4 @@ for group = 1:size(vals,1)
     end
 end
 
-function fibValThreshold = ea_fibValThresh(threshstrategy, vals, threshold)
-switch threshstrategy
-    case 'Percentage Relative to Peak'
-        range = vals(1) - vals(end);
-        fibValThreshold = vals(1) - threshold/100 * range;
-        if range == 0
-            if vals(1) > 0
-                fibValThreshold = fibValThreshold - eps*10;
-            else
-                fibValThreshold = fibValThreshold + eps*10;
-            end
-        end
-    case 'Percentage Relative to Amount'
-        fibValThreshold = vals(round((threshold/100)*length(vals)));
-    case 'Fixed Amount'
-        if length(vals)>round(threshold)
-            fibValThreshold=vals(round(threshold));
-        else
-            fibValThreshold=vals(end);
-        end
-    case 'Histogram (CDF)'
-        if vals(1) > 0
-            [fx, x] = ecdf(vals);
-            fibValThreshold = x(find(fx>=(1-threshold), 1));
-        else
-            [fx, x] = ecdf(-vals);
-            fibValThreshold = -x(find(fx>=(1-threshold), 1));
-        end
-    case 'Fixed Fiber Value'
-        fibValThreshold = threshold;
-end
-
 

@@ -21,19 +21,11 @@ switch obj.connectivity_type
     otherwise % Conventional / efield/VTA
         switch obj.statsettings.stimulationmodel
             case 'VTA'
-                switch obj.statsettings.stattest
-                    case 'N-Map' % do we even need an extra results entry for these?
-                        if strcmp(obj.e_field_metric,'Projection')
-                            id = 'plainconn_proj';
-                        else
-                            id = 'plainconn';
-                        end
-                    otherwise
-                        if strcmp(obj.e_field_metric,'Projection')
-                            id = 'VAT_Ttest_proj';
-                        else
-                            id = 'VAT_Ttest';
-                        end
+                % MEMORY OPTIMIZATION: plainconn removed, use VAT_Ttest instead
+                if strcmp(obj.e_field_metric,'Projection')
+                    id = 'VAT_Ttest_proj';
+                else
+                    id = 'VAT_Ttest';
                 end
             case {'Electric Field','Sigmoid Field'}  % E-fields
                 id='efield';
