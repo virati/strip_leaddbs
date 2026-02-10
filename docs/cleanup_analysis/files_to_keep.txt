@@ -1,0 +1,66 @@
+# Core fiberfiltering filter functions
+helpers/ea_filterfiber_roi.m
+helpers/ea_filterfiber_stim.m
+helpers/ea_filterfiber_len.m
+
+# Fiberfiltering explorer directory (all files)
+explorers/fiberfiltering_explorer/
+
+# Statistical tests
+explorers/stattests/
+
+# Essential helpers - NIfTI I/O
+helpers/ea_load_nii.m
+helpers/ea_write_nii.m
+helpers/ea_niifileparts.m
+helpers/ea_niigz.m
+helpers/ea_detvoxsize.m
+
+# Essential helpers - Coordinate conversion
+helpers/ea_vox2mm.m
+helpers/ea_mm2vox.m
+helpers/ea_mm2uniqueVoxInd.m
+helpers/ea_get_affine.m
+
+# Essential helpers - Spatial
+helpers/ea_spherical_roi.m
+helpers/ea_autocrop.m
+
+# Essential helpers - Path/space
+helpers/space/
+helpers/ea_getconnectomebase.m
+
+# Essential helpers - Statistics
+helpers/stats/ea_resid.m
+helpers/ea_color_wes.m
+helpers/ea_SigmoidFromEfield.m
+
+# Essential helpers - GUI/File ops
+helpers/gui/ea_mkdir.m
+helpers/ea_error.m
+helpers/ea_warndlg.m
+
+# Configuration
+common/ea_prefs_default.m
+common/ea_prefs_default.json
+common/ea_prefs_default.mat
+
+# Core system files
+ea_space.m
+ea_getearoot.m
+ea_prefs.m
+ea_defaultoptions.m
+ea_nanmean.m
+
+# Tests
+tests/
+
+# Documentation
+README.md
+LICENSE.md
+FIBERFILTERING_DEPENDENCIES.md
+
+# Git files
+.git/
+.gitignore
+.gitattributes

@@ -1,0 +1,93 @@
+# Categories of files that can be removed for fiberfiltering-only:
+
+1. Electrode Reconstruction
+   - ea_autocoord.m
+   - ea_diode_*.m
+   - ea_manualreconstruction.m
+   - ea_reconstruct*.m
+   - ea_segment_electrode.m
+
+2. Normalization
+   - ea_normalize*.m
+   - ea_normsettings*.m
+   - ea_normsettings*.fig
+
+3. Coregistration
+   - ea_coreg*.m
+   - ea_spm_coreg.m
+   - ea_show_coregistration.m
+   - ea_checkreg.m
+   - ea_checkreg.fig
+
+4. VAT Generation
+   - ea_genvat_*.m
+   - ea_vatsettings_*.m
+   - ea_vatsettings_*.fig
+   - ea_vatsettings_*.mlapp
+   - vatmodel/
+
+5. Main GUI Applications (not fiberfiltering)
+   - lead.m
+   - lead.fig
+   - lead_dbs.mlapp
+   - lead_group.m
+   - lead_group.fig
+   - lead_group_connectome.m
+   - lead_group_connectome.fig
+   - lead_predict.m
+   - lead_predict.fig
+   - lead_anatomy.m
+   - lead_anatomy.fig
+   - lead_demo.m
+   - nifti_to_bids.mlapp
+   - plot_studio.mlapp
+   - ea_stimparams.mlapp
+
+6. Other Explorers (not fiberfiltering)
+   - explorers/navigator/
+   - explorers/sweetspot_explorer/
+   - explorers/networkmapping_explorer/
+
+7. Non-essential modules
+   - clinical/
+   - genetics/
+   - cluster/
+   - dbshub/
+   - predict/
+   - programmer/
+   - programmergroup/
+
+8. Atlas/Visualization (mostly removable)
+   - ea_atlasselect.m
+   - ea_atlasselect.fig
+   - ea_cortexselect.m
+   - ea_cortexselect.fig
+   - ea_showatlas.m
+   - ea_showcortex.m
+   - ea_anatomycontrol.m
+   - ea_anatomycontrol.fig
+
+9. Helper scripts
+   - support_scripts/ (except explorer_tools_scripting)
+   - dev/
+   - tools/ (most can be removed)
+
+10. Import/Export (mostly removable)
+    - ea_importfs.m
+    - ea_importcorticalels.m
+    - ea_spm_dicom_import.m
+    - ea_nifti_to_bids.m
+
+11. Image processing (mostly removable)
+    - ea_imshow3d.m
+    - ea_imshowpair.m
+    - ea_imageclassifier.m
+    - ea_imageclassifier.fig
+
+12. Dependency/External (check if really needed)
+    - dependency/
+    - toolbox/ (may need some)
+    - external_libraries_ls
+
+13. Classes (check which are needed)
+    - classes/ (most may not be needed for basic fiberfiltering)

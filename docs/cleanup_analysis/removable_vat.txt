@@ -1,0 +1,14 @@
+./ea_genvat_butenko.m
+./ea_genvat_dembek.m
+./ea_genvat_fastfield.m
+./ea_genvat_horn.m
+./ea_genvat_kuncel.m
+./ea_genvat_maedler.m
+./ea_vatsettings_butenko.mlapp
+./ea_vatsettings_dembek.fig
+./ea_vatsettings_dembek.m
+./ea_vatsettings_fastfield.fig
+./ea_vatsettings_fastfield.m
+./ea_vatsettings_horn.fig
+./ea_vatsettings_horn.m
+./helpers/ea_genvat_wrapper.m
